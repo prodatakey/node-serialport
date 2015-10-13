@@ -70,8 +70,6 @@ void SerialportPoller::Init(v8::Handle<v8::Object> target) {
 }
 
 void SerialportPoller::New(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-  Nan::HandleScope scope;
-
   SerialportPoller* obj = new SerialportPoller();
 
   if(!info[0]->IsInt32()) {
@@ -107,14 +105,11 @@ void SerialportPoller::_stop() {
 
 
 void SerialportPoller::Start(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-  Nan::HandleScope scope;
-
   SerialportPoller* obj = Nan::ObjectWrap::Unwrap<SerialportPoller>(info.This());
   obj->_start();
 }
-void SerialportPoller::Close(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-  Nan::HandleScope scope;
 
+void SerialportPoller::Close(const Nan::FunctionCallbackInfo<v8::Value>& info) {
   SerialportPoller* obj = Nan::ObjectWrap::Unwrap<SerialportPoller>(info.This());
   obj->_stop();
 

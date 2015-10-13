@@ -86,8 +86,6 @@ static void deleteQForFD(const int fd) {
 
 
 void Open(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-  Nan::HandleScope scope;
-
   // path
   if(!info[0]->IsString()) {
     Nan::ThrowTypeError("First argument must be a string");
@@ -112,15 +110,15 @@ void Open(const Nan::FunctionCallbackInfo<v8::Value>& info) {
   OpenBaton* baton = new OpenBaton();
   memset(baton, 0, sizeof(OpenBaton));
   strcpy(baton->path, *path);
-  baton->baudRate = options->Get(Nan::New("baudrate").ToLocalChecked())->ToInt32()->Int32Value();
-  baton->dataBits = options->Get(Nan::New("databits").ToLocalChecked())->ToInt32()->Int32Value();
-  baton->bufferSize = options->Get(Nan::New("buffersize").ToLocalChecked())->ToInt32()->Int32Value();
+  baton->baudRate = Nan::To<int32_t>(options->Get(Nan::New("baudrate").ToLocalChecked())).FromJust();
+  baton->dataBits = Nan::To<int32_t>(options->Get(Nan::New("databits").ToLocalChecked())).FromJust();
+  baton->bufferSize = Nan::To<int32_t>(options->Get(Nan::New("buffersize").ToLocalChecked())).FromJust();
   baton->parity = ToParityEnum(options->Get(Nan::New("parity").ToLocalChecked())->ToString());
   baton->stopBits = ToStopBitEnum(options->Get(Nan::New("stopbits").ToLocalChecked())->ToNumber()->NumberValue());
-  baton->rtscts = options->Get(Nan::New("rtscts").ToLocalChecked())->ToBoolean()->BooleanValue();
-  baton->xon = options->Get(Nan::New("xon").ToLocalChecked())->ToBoolean()->BooleanValue();
-  baton->xoff = options->Get(Nan::New("xoff").ToLocalChecked())->ToBoolean()->BooleanValue();
-  baton->xany = options->Get(Nan::New("xany").ToLocalChecked())->ToBoolean()->BooleanValue();
+  baton->rtscts = Nan::To<bool>(options->Get(Nan::New("rtscts").ToLocalChecked())).FromJust();
+  baton->xon = Nan::To<bool>(options->Get(Nan::New("xon").ToLocalChecked())).FromJust();
+  baton->xoff = Nan::To<bool>(options->Get(Nan::New("xoff").ToLocalChecked())).FromJust();
+  baton->xany = Nan::To<bool>(options->Get(Nan::New("xany").ToLocalChecked())).FromJust();
 
   v8::Local<v8::Object> platformOptions = options->Get(Nan::New("platformoptions").ToLocalChecked())->ToObject();
   baton->platformOptions = ParsePlatformOptions(platformOptions);
@@ -143,7 +141,7 @@ void EIO_AfterOpen(uv_work_t* req) {
 
   OpenBaton* data = static_cast<OpenBaton*>(req->data);
 
-  v8::Handle<v8::Value> argv[2];
+  v8::Local<v8::Value> argv[2];
   if(data->errorString[0]) {
     argv[0] = v8::Exception::Error(Nan::New(data->errorString).ToLocalChecked());
     argv[1] = Nan::Undefined();
@@ -155,7 +153,7 @@ void EIO_AfterOpen(uv_work_t* req) {
     argv[0] = Nan::Undefined();
     argv[1] = Nan::New<v8::Int32>(data->result);
 
-    int fd = argv[1]->ToInt32()->Int32Value();
+    int fd = Nan::To<int32_t>(argv[1]).FromJust();
     newQForFD(fd);
 
     AfterOpenSuccess(data->result, data->dataCallback, data->disconnectedCallback, data->errorCallback);
@@ -170,8 +168,6 @@ void EIO_AfterOpen(uv_work_t* req) {
 }
 
 void Write(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-  Nan::HandleScope scope;
-
   // file descriptor
   if(!info[0]->IsInt32()) {
     Nan::ThrowTypeError("First argument must be an int");
@@ -235,7 +231,7 @@ void EIO_AfterWrite(uv_work_t* req) {
   QueuedWrite* queuedWrite = static_cast<QueuedWrite*>(req->data);
   WriteBaton* data = static_cast<WriteBaton*>(queuedWrite->baton);
 
-  v8::Handle<v8::Value> argv[2];
+  v8::Local<v8::Value> argv[2];
   if(data->errorString[0]) {
     argv[0] = v8::Exception::Error(Nan::New(data->errorString).ToLocalChecked());
     argv[1] = Nan::Undefined();
@@ -282,8 +278,6 @@ void EIO_AfterWrite(uv_work_t* req) {
 }
 
 void Close(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-  Nan::HandleScope scope;
-
   // file descriptor
   if(!info[0]->IsInt32()) {
     Nan::ThrowTypeError("First argument must be an int");
@@ -315,7 +309,7 @@ void EIO_AfterClose(uv_work_t* req) {
 
   CloseBaton* data = static_cast<CloseBaton*>(req->data);
 
-  v8::Handle<v8::Value> argv[1];
+  v8::Local<v8::Value> argv[1];
   if(data->errorString[0]) {
     argv[0] = v8::Exception::Error(Nan::New(data->errorString).ToLocalChecked());
   } else {
@@ -346,8 +340,6 @@ void EIO_AfterClose(uv_work_t* req) {
 }
 
 void List(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-  Nan::HandleScope scope;
-
   // callback
   if(!info[0]->IsFunction()) {
     Nan::ThrowTypeError("First argument must be a function");
@@ -371,7 +363,7 @@ void EIO_AfterList(uv_work_t* req) {
 
   ListBaton* data = static_cast<ListBaton*>(req->data);
 
-  v8::Handle<v8::Value> argv[2];
+  v8::Local<v8::Value> argv[2];
   if(data->errorString[0]) {
     argv[0] = v8::Exception::Error(Nan::New(data->errorString).ToLocalChecked());
     argv[1] = Nan::Undefined();
@@ -403,8 +395,6 @@ void EIO_AfterList(uv_work_t* req) {
 }
 
 void Flush(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-  Nan::HandleScope scope;
-
   // file descriptor
   if(!info[0]->IsInt32()) {
     Nan::ThrowTypeError("First argument must be an int");
@@ -436,7 +426,7 @@ void EIO_AfterFlush(uv_work_t* req) {
 
   FlushBaton* data = static_cast<FlushBaton*>(req->data);
 
-  v8::Handle<v8::Value> argv[2];
+  v8::Local<v8::Value> argv[2];
 
   if(data->errorString[0]) {
     argv[0] = v8::Exception::Error(Nan::New(data->errorString).ToLocalChecked());
@@ -453,8 +443,6 @@ void EIO_AfterFlush(uv_work_t* req) {
 }
 
 void Set(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-  Nan::HandleScope scope;
-
   // file descriptor
   if(!info[0]->IsInt32()) {
     Nan::ThrowTypeError("First argument must be an int");
@@ -497,7 +485,7 @@ void EIO_AfterSet(uv_work_t* req) {
 
   SetBaton* data = static_cast<SetBaton*>(req->data);
 
-  v8::Handle<v8::Value> argv[2];
+  v8::Local<v8::Value> argv[2];
 
   if(data->errorString[0]) {
     argv[0] = v8::Exception::Error(Nan::New(data->errorString).ToLocalChecked());
@@ -514,8 +502,6 @@ void EIO_AfterSet(uv_work_t* req) {
 }
 
 void Drain(const Nan::FunctionCallbackInfo<v8::Value>& info) {
-  Nan::HandleScope scope;
-
   // file descriptor
   if(!info[0]->IsInt32()) {
     Nan::ThrowTypeError("First argument must be an int");
@@ -547,7 +533,7 @@ void EIO_AfterDrain(uv_work_t* req) {
 
   DrainBaton* data = static_cast<DrainBaton*>(req->data);
 
-  v8::Handle<v8::Value> argv[2];
+  v8::Local<v8::Value> argv[2];
 
   if(data->errorString[0]) {
     argv[0] = v8::Exception::Error(Nan::New(data->errorString).ToLocalChecked());
